@@ -6,97 +6,30 @@
     <meta name="viewport" content="width=device-width" />
     <title>Abortion Effects on Crime Rates</title>
     <script src="https://d3js.org/d3.v5.min.js"></script>
-    <style>
-      circle {
-        fill: lightblue;
-        stroke: black;
-      }
-    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3-annotation/2.5.1/d3-annotation.min.js"></script>
   </head>
   <body onload="init()">
+    <div class="header">
+      <h1>Effects of Roe v Wade on crime in the U.S.</h1>
+      <p>In one of his works, a famous American Economist Steven Levitt argues that one of the unexpected side
+        effects of legalizing abortions in all of the U.S. was a noticable decrease in crime 15-20 years later.
+        The economist makes a connection that unwanted children have been shown at high risk for crime, so 
+        less unwanted children could mean less crime 15-20 year into the future. The economist says that the 
+        data supports this hypothesis, however none of the sources ever show the graph or origin of the data. 
+        Using <a href="https://corgis-edu.github.io/corgis/csv/state_crime/">this</a> dataset we will eigher 
+        confirm or disprove this hypothesis. <a href="https://youtu.be/zk6gOeggViw">Source</a></p>
+      <hr/>
+    </div>
+    <span>
+      <button type="button" onclick="buttonHandler(-1)" id="btn_prev" disabled>Prev</button>
+      <button type="button" onclick="buttonHandler(1)" id="btn_1" disabled>1</button>
+      <button type="button" onclick="buttonHandler(2)" id="btn_2">2</button>
+      <button type="button" onclick="buttonHandler(0)" id="btn_next">Next</button>
+    </span>
+    <div class="description">
+      <p></p>
+    </div>
     <div id="viz"></div>
-
-    <script>
-    async function init() {
-    const data = await d3.csv(
-        "https://raw.githubusercontent.com/knasta2/CORGIS-Crime-Dataset/main/legal_before.csv"
-    );
-
-    // set the dimensions and margins of the graph
-    var margin = {top: 10, right: 30, bottom: 30, left: 60},
-        width = 1280 - margin.left - margin.right,
-        height = 720 - margin.top - margin.bottom;
-
-    // append the svg object to the body of the page
-    var svg = d3.select("#viz")
-    .append("svg")
-        .attr("width", width + margin.left + margin.right)
-        .attr("height", height + margin.top + margin.bottom)
-    .append("g")
-        .attr("transform",
-            "translate(" + margin.left + "," + margin.top + ")");
-
-    // group the data: I want to draw one line per group
-    var sumstat = d3.nest() // nest function allows to group the calculation per level of a factor
-        .key(function(d) { return d.State;})
-        .entries(data);
-
-    // Add X axis --> it is a date format
-    var x = d3.scaleLinear()
-        .domain([d3.min(data, function(d) { return +d.Year}), d3.max(data, function(d) { return +d.Year; })])
-        .range([ 0, width ]);
-    svg.append("g")
-        .attr("transform", "translate(0," + height + ")")
-        .call(d3.axisBottom(x).tickFormat(d3.format("d")));
-
-    // Add Y axis
-    var y = d3.scaleLinear()
-        .domain([0, d3.max(data, function(d) { return +d.ViolentAll; })])
-        .range([ height, 0 ]);
-    svg.append("g")
-        .call(d3.axisLeft(y));
-
-    // color palette
-    var res = sumstat.map(function(d){ return d.key }) // list of group names
-    var color = d3.scaleOrdinal()
-        .domain(res)
-        .range(['#e41a1c','#377eb8','#4daf4a','#984ea3','#ff7f00','#ffff33','#a65628','#f781bf','#999999'])
-
-    // Draw the line
-    svg.selectAll(".line")
-        .data(sumstat)
-        .enter()
-        .append("path")
-            .attr("fill", "none")
-            .attr("stroke", function(d){ return color(d.key) })
-            .attr("stroke-width", 1.5)
-            .attr("d", function(d){
-            return d3.line()
-                .x(function(d) { return x(d.Year); })
-                .y(function(d) { return y(+d.ViolentAll); })
-                (d.values)
-            })
-    
-    svg.selectAll("mydots")
-    .data(res)
-    .enter()
-    .append("circle")
-        .attr("cx", width - 120)
-        .attr("cy", function(d,i){ return 20 + i*25}) // 100 is where the first dot appears. 25 is the distance between dots
-        .attr("r", 7)
-        .style("fill", function(d){ return color(d)})
-
-    svg.selectAll("mylabels")
-    .data(res)
-    .enter()
-    .append("text")
-        .attr("x", width - 100)
-        .attr("y", function(d,i){ return 20 + i*25}) // 100 is where the first dot appears. 25 is the distance between dots
-        .style("fill", function(d){ return color(d)})
-        .text(function(d){ return d})
-        .attr("text-anchor", "left")
-        .style("alignment-baseline", "middle")
-    }
-    </script>
+    <script src="app.js" type="text/javascript"></script>
   </body>
 </html>
