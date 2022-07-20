@@ -10,6 +10,7 @@ function buttonHandler(value) {
   var btn_prev = d3.select("#btn_prev").attr("disabled", null);
   var btn_1 = d3.select("#btn_1").attr("disabled", null);
   var btn_2 = d3.select("#btn_2").attr("disabled", null);
+  var btn_3 = d3.select("#btn_3").attr("disabled", null);
   var btn_next = d3.select("#btn_next").attr("disabled", null);
   switch (value) {
     case -1:
@@ -26,13 +27,12 @@ function buttonHandler(value) {
   if (curSlide == 1) {
     btn_prev.attr("disabled", "disabled");
     btn_1.attr("disabled", "disabled");
-  }
-  else if (curSlide == 2) {
-    btn_next.attr("disabled", "disabled");
+  } else if (curSlide == 2) {
     btn_2.attr("disabled", "disabled");
+  } else if (curSlide == 3) {
+    btn_next.attr("disabled", "disabled");
+    btn_3.attr("disabled", "disabled");
   }
-
-  console.log(curSlide);
 
   slide(curSlide);
 }
@@ -43,7 +43,7 @@ async function slide(curSlide) {
       d3.select(".description")
         .select("p")
         .text(
-          "Those 4 states legalized abortions in 1970, 3 years before Roe v Wade. Let's see what affect on crime it had 20 years later."
+          "New York and Washington legalized abortions in 1970, 3 years before Roe v Wade. Let's see what affect on crime it had 20 years later compared to states that legalized abortions 3 years later. Looking at the graphs we can see that exactly 20 years later the crime rates in New York started to decline, however that's not the case in Washington. We can see that a similar effect happened in California 18 years after the abortions were legalized, however crime in Illinois only increased."
         );
       data = await d3.csv(
         "https://raw.githubusercontent.com/knasta2/CORGIS-Crime-Dataset/main/legal_before.csv"
@@ -54,10 +54,21 @@ async function slide(curSlide) {
       d3.select(".description")
         .select("p")
         .text(
-          "After abortions became legal in all of the states, there were still some states (for example Texas and Alabama) that didn't make abortions easily available. Let's compare those 2 states to states where abortions were easily available."
+          "After abortions became legal in all of the states, there were still some states (for example Texas and Alabama) that didn't make abortions easily available. Let's compare those 2 states to states where abortions were easily available. We can see that in all of the states the crime begun to decrease around the 18-20 year marks. However, the crime rates decreased more significanly in the states that had abortion easliy available (California and Texas), compared to the states that didn't make abortion as available (Alabama and Texas)."
         );
       data = await d3.csv(
         "https://raw.githubusercontent.com/knasta2/CORGIS-Crime-Dataset/main/easily_available.csv"
+      );
+      yearLegal = 1973;
+      break;
+    case 3:
+      d3.select(".description")
+        .select("p")
+        .text(
+          "Lets look at some other states where population is bigger than 5 million people and see if the effect described by doctor Levitt is noticable on the graphs."
+        );
+      data = await d3.csv(
+        "https://raw.githubusercontent.com/knasta2/CORGIS-Crime-Dataset/main/big_population.csv"
       );
       yearLegal = 1973;
       break;
@@ -83,13 +94,13 @@ async function slide(curSlide) {
   d3.select("svg").remove();
 
   // append the svg object to the body of the page
-    svg = d3
-      .select("#viz")
-      .append("svg")
-      .attr("width", width + margin.left + margin.right)
-      .attr("height", height + margin.top + margin.bottom)
-      .append("g")
-      .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+  svg = d3
+    .select("#viz")
+    .append("svg")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
+    .append("g")
+    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
   // group the data: I want to draw one line per group
   sumstat = d3
@@ -161,7 +172,6 @@ async function slide(curSlide) {
       "#4daf4a",
       "#984ea3",
       "#ff7f00",
-      "#ffff33",
       "#a65628",
       "#f781bf",
       "#999999",
@@ -189,6 +199,16 @@ async function slide(curSlide) {
           return y(+d.ViolentAll);
         })(d.values);
     });
+  
+  if (curSlide == 1) {
+    svg.selectAll(".line").attr('class', function (d) {
+      if (d.key == "California" || d.key == "Illinois") {
+        return "line dashed";
+      } else {
+        return "line solid";
+      }
+    })
+  }
 
   svg
     .selectAll("mydots")
@@ -280,7 +300,6 @@ async function slide(curSlide) {
       });
 
       d3.selectAll(".mouse-per-line").attr("transform", function (d, i) {
-        console.log(width / mouse[0]);
         var xDate = x.invert(mouse[0]),
           bisect = d3.bisector(function (d) {
             return d.Year;
@@ -307,12 +326,36 @@ async function slide(curSlide) {
         return "translate(" + mouse[0] + "," + pos.y + ")";
       });
     });
+  
+  if (curSlide == 1) {
+    svg
+      .append("line")
+      .attr("x1", x(yearLegal + 3))
+      .attr("y1", 0)
+      .attr("x2", x(yearLegal + 3))
+      .attr("y2", height)
+      .style("stroke-width", 2)
+      .style("stroke", "orange")
+      .style("fill", "none")
+      .attr("class", "line dashed");
+
+    svg
+      .append("line")
+      .attr("x1", x(yearLegal + 23))
+      .attr("y1", 0)
+      .attr("x2", x(yearLegal + 23))
+      .attr("y2", height)
+      .style("stroke-width", 2)
+      .style("stroke", "orange")
+      .style("fill", "none")
+      .attr("class", "line dashed");
+  }
 
   svg
     .append("line")
-    .attr("x1", x(yearLegal)) //<<== change your code here
+    .attr("x1", x(yearLegal))
     .attr("y1", 0)
-    .attr("x2", x(yearLegal)) //<<== and here
+    .attr("x2", x(yearLegal))
     .attr("y2", height)
     .style("stroke-width", 2)
     .style("stroke", "darkblue")
@@ -320,16 +363,18 @@ async function slide(curSlide) {
 
   svg
     .append("line")
-    .attr("x1", x(yearLegal + 20)) //<<== change your code here
+    .attr("x1", x(yearLegal + 20))
     .attr("y1", 0)
-    .attr("x2", x(yearLegal + 20)) //<<== and here
+    .attr("x2", x(yearLegal + 20))
     .attr("y2", height)
     .style("stroke-width", 2)
     .style("stroke", "darkblue")
     .style("fill", "none");
+  
+  
 
   const type = d3.annotationLabel;
-  const annotations = [
+  var annotations = [
     {
       note: {
         label: "Abortions became legal",
@@ -337,9 +382,9 @@ async function slide(curSlide) {
         //title: "Legal",
       },
       //can use x, y directly instead of data
-      data: { Year: yearLegal, ViolentAll: 1000 },
+      data: { Year: yearLegal, ViolentAll: 900 },
       className: "show-bg",
-      dy: -30,
+      dy: -20,
       dx: -80,
     },
     {
@@ -349,12 +394,66 @@ async function slide(curSlide) {
         //title: "Legal",
       },
       //can use x, y directly instead of data
-      data: { Year: yearLegal + 20, ViolentAll: 1000 },
+      data: { Year: yearLegal + 20, ViolentAll: 900 },
       className: "show-bg",
-      dy: -30,
+      dy: -20,
       dx: -80,
     },
   ];
+
+  if (curSlide == 1) {
+    annotations = [
+      {
+        note: {
+          label: "Abortions became legal in NY and Washington",
+          bgPadding: 20,
+          //title: "Legal",
+        },
+        //can use x, y directly instead of data
+        data: { Year: yearLegal, ViolentAll: 1000 },
+        className: "show-bg",
+        dy: -30,
+        dx: -80,
+      },
+      {
+        note: {
+          label: "20 years after abortions became legal in NY and Washington",
+          bgPadding: 20,
+          //title: "Legal",
+        },
+        //can use x, y directly instead of data
+        data: { Year: yearLegal + 20, ViolentAll: 1000 },
+        className: "show-bg",
+        dy: -20,
+        dx: -85,
+      },
+      {
+        note: {
+          label: "Abortions became legal in California and Illinois",
+          bgPadding: 20,
+          //title: "Legal",
+        },
+        //can use x, y directly instead of data
+        data: { Year: yearLegal + 3, ViolentAll: 1000 },
+        className: "show-bg",
+        dy: -30,
+        dx: 70,
+      },
+      {
+        note: {
+          label:
+            "20 years after abortions became legal in California and Illinois",
+          bgPadding: 20,
+          //title: "Legal",
+        },
+        //can use x, y directly instead of data
+        data: { Year: yearLegal + 23, ViolentAll: 1000 },
+        className: "show-bg",
+        dy: -20,
+        dx: 75,
+      },
+    ];
+  }
 
   const makeAnnotations = d3
     .annotation()
