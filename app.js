@@ -1,4 +1,4 @@
-var curSlide = 1;
+var curSlide = 1; //parameter for storing which slide we're on
 var data, yearLegal, margin, width, height, svg, sumstat, color, x, y, res;
 
 
@@ -6,6 +6,7 @@ async function init() {
   slide(curSlide);
 }
 
+// handle button events
 function buttonHandler(value) {
   var btn_prev = d3.select("#btn_prev").attr("disabled", null);
   var btn_1 = d3.select("#btn_1").attr("disabled", null);
@@ -37,9 +38,11 @@ function buttonHandler(value) {
   slide(curSlide);
 }
 
+// assign the right slide
 async function slide(curSlide) {
+  // change the data based on which slide we're on
   switch (curSlide) {
-    case 1:
+    case 2:
       d3.select(".description")
         .select("p")
         .text(
@@ -50,22 +53,22 @@ async function slide(curSlide) {
       );
       yearLegal = 1970;
       break;
-    case 2:
+    case 3:
       d3.select(".description")
         .select("p")
         .text(
-          "After abortions became legal in all of the states, there were still some states (for example Texas and Alabama) that didn't make abortions easily available. Let's compare those 2 states to states where abortions were easily available. We can see that in all of the states the crime begun to decrease around the 18-20 year marks. However, the crime rates decreased more significanly in the states that had abortion easliy available (California and Texas), compared to the states that didn't make abortion as available (Alabama and Texas)."
+          "After abortions became legal in all of the states, there were still some states (for example Texas and Alabama) that didn't make abortions easily available. Let's compare those 2 states to states where abortions were easily available. We can see that in all of the states the crime begun to decrease around the 18-20 year marks. However, the crime rates decreased more significanly in the states that had abortion easliy available (California and Oregon), compared to the states that didn't make abortion as available (Alabama and Texas)."
         );
       data = await d3.csv(
         "https://raw.githubusercontent.com/knasta2/CORGIS-Crime-Dataset/main/easily_available.csv"
       );
       yearLegal = 1973;
       break;
-    case 3:
+    case 1:
       d3.select(".description")
         .select("p")
         .text(
-          "Lets look at some other states where population is bigger than 5 million people and see if the effect described by doctor Levitt is noticable on the graphs."
+          "Let's look at some randomly chosen states where population is bigger than 5 million people and see if the effect described by doctor Levitt is noticable on the graphs. We can see that in the majority of cases the crime began to decrease around the 20 year marker. It is impossible to estimate if Roe v Wade or some other factors are the cause of it, since the data doesn't consistently prove that claim for all states."
         );
       data = await d3.csv(
         "https://raw.githubusercontent.com/knasta2/CORGIS-Crime-Dataset/main/big_population.csv"
@@ -77,12 +80,12 @@ async function slide(curSlide) {
       d3.select(".description")
         .select("p")
         .text(
-          "Those 4 states legalized abortions in 1970, 3 years before Roe v Wade. Let's see what affect on crime it had 20 years later."
+          "Let's look at some other states where population is bigger than 5 million people and see if the effect described by doctor Levitt is noticable on the graphs. We can see that in the majority of cases the crime began to decrease around the 20 year marker. It is impossible to estimate if Roe v Wade or some other factors are the cause of it, since the data doesn't consistently prove that claim for all states."
         );
       data = await d3.csv(
-        "https://raw.githubusercontent.com/knasta2/CORGIS-Crime-Dataset/main/legal_before.csv"
+        "https://raw.githubusercontent.com/knasta2/CORGIS-Crime-Dataset/main/big_population.csv"
       );
-      yearLegal = 1970;
+      yearLegal = 1973;
       break;
   }
 
@@ -90,7 +93,8 @@ async function slide(curSlide) {
   (margin = { top: 10, right: 30, bottom: 30, left: 60 }),
     (width = 1280 - margin.left - margin.right),
     (height = 720 - margin.top - margin.bottom);
-  
+
+  // remove previous graph is there is one
   d3.select("svg").remove();
 
   // append the svg object to the body of the page
@@ -110,7 +114,7 @@ async function slide(curSlide) {
     })
     .entries(data);
 
-  // Add X axis --> it is a date format
+  // Add X axis
   x = d3
     .scaleLinear()
     .domain([
@@ -199,17 +203,19 @@ async function slide(curSlide) {
           return y(+d.ViolentAll);
         })(d.values);
     });
-  
-  if (curSlide == 1) {
-    svg.selectAll(".line").attr('class', function (d) {
+
+  // only applicable to compare states where abortions were legalized earlier
+  if (curSlide == 2) {
+    svg.selectAll(".line").attr("class", function (d) {
       if (d.key == "California" || d.key == "Illinois") {
         return "line dashed";
       } else {
         return "line solid";
       }
-    })
+    });
   }
 
+  // add legend dots
   svg
     .selectAll("mydots")
     .data(res)
@@ -224,6 +230,7 @@ async function slide(curSlide) {
       return color(d);
     });
 
+  // add legend lables
   svg
     .selectAll("mylabels")
     .data(res)
@@ -242,6 +249,7 @@ async function slide(curSlide) {
     .attr("text-anchor", "left")
     .style("alignment-baseline", "middle");
 
+  // mouseover effects created following this tutorial: https://bl.ocks.org/larsenmtl/e3b8b7c2ca4787f77d78f58d41c3da91
   var mouseG = svg.append("g").attr("class", "mouse-over-effects");
 
   mouseG
@@ -326,8 +334,9 @@ async function slide(curSlide) {
         return "translate(" + mouse[0] + "," + pos.y + ")";
       });
     });
-  
-  if (curSlide == 1) {
+
+  // add extra annotations to the second slide
+  if (curSlide == 2) {
     svg
       .append("line")
       .attr("x1", x(yearLegal + 3))
@@ -351,6 +360,7 @@ async function slide(curSlide) {
       .attr("class", "line dashed");
   }
 
+  // add vertical annotation line to the slide
   svg
     .append("line")
     .attr("x1", x(yearLegal))
@@ -370,9 +380,8 @@ async function slide(curSlide) {
     .style("stroke-width", 2)
     .style("stroke", "darkblue")
     .style("fill", "none");
-  
-  
 
+  // create annotation label
   const type = d3.annotationLabel;
   var annotations = [
     {
@@ -401,7 +410,7 @@ async function slide(curSlide) {
     },
   ];
 
-  if (curSlide == 1) {
+  if (curSlide == 2) {
     annotations = [
       {
         note: {
@@ -455,6 +464,7 @@ async function slide(curSlide) {
     ];
   }
 
+  // add annotation to the slide
   const makeAnnotations = d3
     .annotation()
     .editMode(false)
